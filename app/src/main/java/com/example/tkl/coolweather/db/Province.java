@@ -6,6 +6,8 @@ import org.litepal.crud.DataSupport;
 
 public class Province extends DataSupport {
 
+    private static final String TAG = "Province";
+
     private int id;
     private String provinceName;
     private int provinceCode;
@@ -19,6 +21,7 @@ public class Province extends DataSupport {
     }
 
     public String getProvinceName() {
+//        Log.i(TAG, "getProvinceName: provincename:" + provinceName);
         return provinceName;
     }
 

@@ -6,6 +6,8 @@ import org.litepal.crud.DataSupport;
 
 public class City extends DataSupport {
 
+    private static final String TAG = "City";
+
     private int id;
     private String cityName;
     private int cityCode;
@@ -20,6 +22,7 @@ public class City extends DataSupport {
     }
 
     public String getCityName() {
+//        Log.i(TAG, "getCityName: cityname:" + cityName);
         return cityName;
     }
 

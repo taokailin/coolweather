@@ -1,14 +1,20 @@
 package com.example.tkl.coolweather;
 
+import android.content.BroadcastReceiver;
+import android.content.Context;
+import android.content.Intent;
+import android.content.IntentFilter;
 import android.content.SharedPreferences;
 import android.graphics.Color;
 import android.os.Build;
 import android.preference.PreferenceManager;
+import android.support.v4.content.LocalBroadcastManager;
 import android.support.v4.view.GravityCompat;
 import android.support.v4.widget.DrawerLayout;
 import android.support.v4.widget.SwipeRefreshLayout;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.widget.Button;
@@ -21,12 +27,14 @@ import android.widget.Toast;
 import com.bumptech.glide.Glide;
 import com.example.tkl.coolweather.gson.Forecast;
 import com.example.tkl.coolweather.gson.Weather;
+import com.example.tkl.coolweather.service.AutoUpdateService;
 import com.example.tkl.coolweather.util.HttpUtil;
 import com.example.tkl.coolweather.util.Utility;
 
 import org.w3c.dom.Text;
 
 import java.io.IOException;
+import java.io.Serializable;
 
 import okhttp3.Call;
 import okhttp3.Callback;
@@ -34,6 +42,9 @@ import okhttp3.Response;
 
 public class WeatherActivity extends AppCompatActivity {
 
+    private static final String TAG = "WeatherActivity";
+
+    public RefreshWeatherInfoReceiver mReceiver;
 
     public DrawerLayout drawerLayout;
     private Button navButton;
@@ -128,6 +139,30 @@ public class WeatherActivity extends AppCompatActivity {
                 drawerLayout.openDrawer(GravityCompat.START);
             }
         });
+
+        registerWeatherReceiver();
+    }
+    private void registerWeatherReceiver(){
+        IntentFilter intentFilter = new IntentFilter();
+        intentFilter.addAction("com.example.tkl.coolweather.REFRESH_WEATHER");
+        mReceiver = new RefreshWeatherInfoReceiver();
+        if(mReceiver != null){
+            LocalBroadcastManager.getInstance(WeatherActivity.this).registerReceiver(mReceiver, intentFilter);
+        }
+    }
+
+    @Override
+    protected void onResume() {
+        super.onResume();
+
+    }
+
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
+        if(mReceiver != null){
+            LocalBroadcastManager.getInstance(WeatherActivity.this).unregisterReceiver(mReceiver);
+        }
     }
 
     public void requestWeather(final String weatherId){
@@ -198,7 +233,7 @@ public class WeatherActivity extends AppCompatActivity {
         });
     }
 
-    private void showWeatherInfo(Weather weather){
+    public void showWeatherInfo(Weather weather){
         String cityName = weather.basic.cityName;
         String updateTime = weather.basic.update.updateTime.split(" ")[1];
 
@@ -239,5 +274,18 @@ public class WeatherActivity extends AppCompatActivity {
         carWashText.setText(carWash);
         sportText.setText(sport);
         weatherLayout.setVisibility(View.VISIBLE);
+
+        Intent intent = new Intent(this, AutoUpdateService.class);
+        startService(intent);
+    }
+
+    class RefreshWeatherInfoReceiver extends BroadcastReceiver{//接收服务数据，更新活动数据s
+
+        @Override
+        public void onReceive(Context context, Intent intent) {
+            Weather weather = (Weather) intent.getSerializableExtra("weather");
+            Log.i(TAG, "onReceive: broadcast is executed");
+            showWeatherInfo(weather);
+        }
     }
 }

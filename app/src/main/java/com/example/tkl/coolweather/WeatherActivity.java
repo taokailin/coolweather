@@ -42,6 +42,8 @@ import okhttp3.Response;
 
 public class WeatherActivity extends AppCompatActivity {
 
+    private static boolean isFirstEnter = true;
+
     private static final String TAG = "WeatherActivity";
 
     public RefreshWeatherInfoReceiver mReceiver;
@@ -275,8 +277,11 @@ public class WeatherActivity extends AppCompatActivity {
         sportText.setText(sport);
         weatherLayout.setVisibility(View.VISIBLE);
 
-        Intent intent = new Intent(this, AutoUpdateService.class);
-        startService(intent);
+        if(isFirstEnter) {
+            Intent intent = new Intent(this, AutoUpdateService.class);
+            startService(intent);
+            isFirstEnter = false;
+        }
     }
 
     class RefreshWeatherInfoReceiver extends BroadcastReceiver{//接收服务数据，更新活动数据s
